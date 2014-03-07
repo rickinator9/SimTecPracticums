@@ -16,7 +16,7 @@ namespace SIMTEC3D_Prac1.Scripts
         public Ball(Vector3 position, float scale, GraphicsDevice device, GameObject[] gameobjects) : base(position, Vector3.Zero, scale, device)
         {
             this.gameobjects = gameobjects;
-            this.velocity = new Vector3(2, 3, 1);
+            this.velocity = new Vector3(0.5f, 3f, 0.5f);
         }
 
         protected override Model loadModel(ContentManager content)
@@ -86,15 +86,18 @@ namespace SIMTEC3D_Prac1.Scripts
 
             Vector3 distanceVector = plane.getDistanceTillPoint(ballCollisionPoint);         //The distance from bal to plane in the next frame
             Vector3 newDistanceVector = plane.getDistanceTillPoint(newBallCollisionPoint);    //The distance from bal to plane in the previous frame
-            float distance = distanceVector.X + distanceVector.Y + distanceVector.Z;
-            float newDistance = newDistanceVector.X + newDistanceVector.Y + newDistanceVector.Z;
-
-            if (Math.Sign(distance) != Math.Sign(newDistance))     //Is the bal past the plane
+            if (!distanceVector.X.Equals(float.NaN) && !newDistanceVector.X.Equals(float.NaN))
             {
-                Vector3 pivot = plane.getPivotWithLine(ballCollisionPoint, speed);
-                if (pivot.Equals(new Vector3(float.MaxValue, float.MaxValue, float.MaxValue)))
+                float distance = distanceVector.X + distanceVector.Y + distanceVector.Z;
+                float newDistance = newDistanceVector.X + newDistanceVector.Y + newDistanceVector.Z;
+
+                if (Math.Sign(distance) != Math.Sign(newDistance))     //Is the bal past the plane
                 {
-                    speed = bounce(ballCollisionPoint, speed, speedInNormalDirection, plane.normal, pivot);
+                    Vector3 pivot = plane.getPivotWithLine(ballCollisionPoint, speed);
+                    if (!pivot.X.Equals(float.NaN))
+                    {
+                        speed = bounce(ballCollisionPoint, speed, speedInNormalDirection, plane.normal, pivot);
+                    }
                 }
             }
 

@@ -31,20 +31,42 @@ namespace SIMTEC3D_Prac1.Scripts
             return (pivot - point);
         }
 
-        //Need to be determend yet
-        public bool inBondry(Vector3 point)
+        private bool inBoundry(Vector3 point, Vector3 ax)
         {
-            return true;
+            ax = Vector3.Transform(ax, Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z));
+
+            Vector3 min = position - scale * ax;
+            Vector3 max = position + scale * ax;
+
+            Vector3 distanceTillMin = Physics.getDistanceBetweenPoint(min, point, ax);
+            Vector3 distanceTillMax = Physics.getDistanceBetweenPoint(max, point, ax);
+
+            int side1 = Math.Sign(distanceTillMin.X + distanceTillMin.Y + distanceTillMin.Z);
+            int side2 = Math.Sign(distanceTillMax.X + distanceTillMax.Y + distanceTillMax.Z);
+
+            return side1 != side2 || distanceTillMin.Equals(Vector3.Zero) || distanceTillMax.Equals(Vector3.Zero);
+        }
+
+        public bool inBoundry(Vector3 point)
+        {
+            return inBoundry(point, Vector3.Forward) && inBoundry(point, Vector3.Right);
         }
 
         public Vector3 getPivotWithLine(Vector3 point, Vector3 direction)
         {
-            float t = (_equation.W - (_equation.X * point.X + _equation.Y * point.Y + _equation.Z * point.Z))
-                / (_equation.X * direction.X + _equation.Y * direction.Y + _equation.Z * direction.Z);
+            if (inBoundry(point))
+            {
+                float t = (_equation.W - (_equation.X * point.X + _equation.Y * point.Y + _equation.Z * point.Z))
+                    / (_equation.X * direction.X + _equation.Y * direction.Y + _equation.Z * direction.Z);
 
-           Vector3 pivot = new Vector3(point.X + t * direction.X, point.Y + t * direction.Y, point.Z + t * direction.Z);
+                Vector3 pivot = new Vector3(point.X + t * direction.X, point.Y + t * direction.Y, point.Z + t * direction.Z);
 
-           return inBondry(pivot)? pivot: new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+                return pivot;
+            }
+            else
+            {
+                return new Vector3(float.NaN, float.NaN, float.NaN);
+            }
         }
 
         public Vector4 equation
