@@ -26,19 +26,33 @@ namespace SIMTEC3D_Prac1.Scripts
 
         public override void update(float deltaTime)
         {
-            move(velocity * deltaTime);
+            move(deltaTime);
             base.update(deltaTime);
         }
 
         //Move the ball and check for collision
-        private void move(Vector3 speed)
+        private void move(float deltaTime)
         {
-            Vector3 speedBeforeCollision = speed;
-            speed = applyPhysics(speed);
-            if (speed.Equals(speedBeforeCollision))
+            if (velocity.Length() != 0)
             {
-                position += speed;
+                Vector3 speed = velocity * deltaTime;
+                Vector3 speedBeforeCollision = speed;
+                speed = applyPhysics(speed);
+                if (speed.Equals(speedBeforeCollision))
+                {
+                    position += speed;
+                }
+                else
+                {
+                    velocity = speed / deltaTime;
+                }
             }
+        }
+
+        //Calculate the position of the end of the ball that is pointing toward the plane
+        public Vector3 getPivotWithPlane(Vector3 planeNormal)
+        {
+            return new Vector3(position.X - planeNormal.X * scale, position.Y - planeNormal.Y * scale, position.Z - planeNormal.Z * scale);
         }
 
         //Check for collision with all other gameobjects
@@ -50,64 +64,55 @@ namespace SIMTEC3D_Prac1.Scripts
                 {
                     foreach (Plane plane in ((Box)gameObject).planes)
                     {
-                        speed = applyPhysics(plane, speed);
+                        speed = applyCollisionPhysics(plane, speed);
                     }
                 }
                 else if (gameObject is Plane)
                 {
-                    speed = applyPhysics((Plane)gameObject, speed);
+                    speed = applyCollisionPhysics((Plane)gameObject, speed);
                 }
             }
             return speed;
         }
 
         //Check for collision with a plane
-        private Vector3 applyPhysics(Plane plane, Vector3 speed)
+        private Vector3 applyCollisionPhysics(Plane plane, Vector3 speed)
         {
-            Vector3 normal = new Vector3(plane.planeEquation.X, plane.planeEquation.Y, plane.planeEquation.Z);
-
             //Calculate the position of the end of the ball that is pointing toward the plane
-            Vector3 ballCollisionPoint = new Vector3(position.X-normal.X*scale, position.Y-normal.Y*scale, position.Z-normal.Z*scale);
+            Vector3 ballCollisionPoint = getPivotWithPlane(plane.normal);
             Vector3 newBallCollisionPoint = ballCollisionPoint + speed;     //The new position, ignoring collisions
 
-            //Calculating the pivot, on the plane that is closest to the ball
-            float t = (plane.planeEquation.W - (plane.planeEquation.X*newBallCollisionPoint.X + plane.planeEquation.Y*newBallCollisionPoint.Y + plane.planeEquation.Z*newBallCollisionPoint.Z)) 
-                / (plane.planeEquation.X*normal.X + plane.planeEquation.Y*normal.Y + plane.planeEquation.Z*normal.Z);
-            Vector3 pivot = new Vector3(newBallCollisionPoint.X + t * normal.X, newBallCollisionPoint.Y + t * normal.Y, newBallCollisionPoint.Z + t * normal.Z);
+            Vector3 speedInNormalDirection = Physics.dotProductCalculation(speed, plane.normal);
 
+            Vector3 distanceVector = plane.getDistanceTillPoint(ballCollisionPoint);         //The distance from bal to plane in the next frame
+            Vector3 newDistanceVector = plane.getDistanceTillPoint(newBallCollisionPoint);    //The distance from bal to plane in the previous frame
+            float distance = distanceVector.X + distanceVector.Y + distanceVector.Z;
+            float newDistance = newDistanceVector.X + newDistanceVector.Y + newDistanceVector.Z;
 
-            Vector3 distance = pivot - newBallCollisionPoint;         //The distance from bal to plane in the next frame
-            Vector3 previousDistance = pivot - ballCollisionPoint;    //The distance from bal to plane in the previous frame
-            if (Math.Sign(distance.X * normal.X+distance.Y*normal.Y+distance.Z*normal.Z) 
-                    != Math.Sign(previousDistance.X * normal.X+previousDistance.Y*normal.Y+previousDistance.Z*normal.Z)) //Is the bal past the plane
+            if (Math.Sign(distance) != Math.Sign(newDistance))     //Is the bal past the plane
             {
-                //Calculate the pivot where the ball first touched the plane
-                t = (plane.planeEquation.W - (plane.planeEquation.X * ballCollisionPoint.X + plane.planeEquation.Y * ballCollisionPoint.Y + plane.planeEquation.Z * ballCollisionPoint.Z))
-                   / (plane.planeEquation.X * velocity.X + plane.planeEquation.Y * velocity.Y + plane.planeEquation.Z * velocity.Z);
-                pivot = new Vector3(ballCollisionPoint.X + t * velocity.X, ballCollisionPoint.Y + t * velocity.Y, ballCollisionPoint.Z + t * velocity.Z);
-
-                speed = bounce(normal, pivot, speed);
+                Vector3 pivot = plane.getPivotWithLine(ballCollisionPoint, speed);
+                if (pivot.Equals(new Vector3(float.MaxValue, float.MaxValue, float.MaxValue)))
+                {
+                    speed = bounce(ballCollisionPoint, speed, speedInNormalDirection, plane.normal, pivot);
+                }
             }
 
             return speed;
         }
 
         //Bounce the ball away from a plane
-        private Vector3 bounce(Vector3 normal, Vector3 pivot, Vector3 speed)
+        private Vector3 bounce(Vector3 ballCollisionPoint, Vector3 speed, Vector3 speedInNormalDirection, Vector3 planeNormal, Vector3 pivot)
         {
             //Dotproduct calculation
-            Vector3 normalizedNormal = new Vector3(normal.X, normal.Y, normal.Z);
+            Vector3 normalizedNormal = new Vector3(planeNormal.X, planeNormal.Y, planeNormal.Z);
             normalizedNormal.Normalize();
-            Vector3 normalizedVelocity = new Vector3(this.velocity.X, this.velocity.Y, this.velocity.Z);
-            normalizedVelocity.Normalize();
-            float dotProduct = normalizedVelocity.X * normalizedNormal.X + normalizedVelocity.Y * normalizedNormal.Y + normalizedVelocity.Z * normalizedNormal.Z;
 
             //Set the bal just next to the plane
-            position = pivot + normalizedNormal * 1.01f * scale;
+            position = pivot + normalizedNormal * 1.0001f * scale;
 
             //Reverse the velocity in the dircection of the plane
-            this.velocity -= 2 * dotProduct * normalizedNormal * this.velocity.Length();
-            speed = speed - 2 * dotProduct * normalizedNormal * speed.Length();
+            speed = speed - 2 * speedInNormalDirection;
 
             return speed;
         }
