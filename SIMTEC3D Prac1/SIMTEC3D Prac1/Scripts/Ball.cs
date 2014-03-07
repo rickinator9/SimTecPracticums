@@ -16,7 +16,7 @@ namespace SIMTEC3D_Prac1.Scripts
         public Ball(Vector3 position, float scale, GraphicsDevice device, GameObject[] gameobjects) : base(position, Vector3.Zero, scale, device)
         {
             this.gameobjects = gameobjects;
-            this.velocity = new Vector3(2, 1, 1);
+            this.velocity = new Vector3(2, 3, 1);
         }
 
         protected override Model loadModel(ContentManager content)
@@ -81,10 +81,10 @@ namespace SIMTEC3D_Prac1.Scripts
             if (Math.Sign(distance.X * normal.X+distance.Y*normal.Y+distance.Z*normal.Z) 
                     != Math.Sign(previousDistance.X * normal.X+previousDistance.Y*normal.Y+previousDistance.Z*normal.Z)) //Is the bal past the plane
             {
-                //Calculate the pivot, from a point inside the box
-                t = (plane.planeEquation.W - (plane.planeEquation.X * position.X + plane.planeEquation.Y * position.Y + plane.planeEquation.Z * position.Z))
-                   / (plane.planeEquation.X * normal.X + plane.planeEquation.Y * normal.Y + plane.planeEquation.Z * normal.Z);
-                pivot = new Vector3(position.X + t * normal.X, position.Y + t * normal.Y, position.Z + t * normal.Z);
+                //Calculate the pivot where the ball first touched the plane
+                t = (plane.planeEquation.W - (plane.planeEquation.X * ballCollisionPoint.X + plane.planeEquation.Y * ballCollisionPoint.Y + plane.planeEquation.Z * ballCollisionPoint.Z))
+                   / (plane.planeEquation.X * velocity.X + plane.planeEquation.Y * velocity.Y + plane.planeEquation.Z * velocity.Z);
+                pivot = new Vector3(ballCollisionPoint.X + t * velocity.X, ballCollisionPoint.Y + t * velocity.Y, ballCollisionPoint.Z + t * velocity.Z);
 
                 speed = bounce(normal, pivot, speed);
             }
@@ -103,7 +103,7 @@ namespace SIMTEC3D_Prac1.Scripts
             float dotProduct = normalizedVelocity.X * normalizedNormal.X + normalizedVelocity.Y * normalizedNormal.Y + normalizedVelocity.Z * normalizedNormal.Z;
 
             //Set the bal just next to the plane
-            position = pivot + normalizedNormal * 1.01f;
+            position = pivot + normalizedNormal * 1.01f * scale;
 
             //Reverse the velocity in the dircection of the plane
             this.velocity -= 2 * dotProduct * normalizedNormal * this.velocity.Length();
