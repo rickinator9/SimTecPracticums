@@ -31,42 +31,58 @@ namespace SIMTEC3D_Prac1.Scripts
             return (pivot - point);
         }
 
-        private bool inBoundry(Vector3 point, Vector3 ax)
+        private float getDistanceTillBoundry(Vector3 point, Vector3 ax)
         {
             ax = Vector3.Transform(ax, Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z));
 
             Vector3 min = position - scale * ax;
             Vector3 max = position + scale * ax;
 
-            Vector3 distanceTillMin = Physics.getDistanceBetweenPoint(min, point, ax);
-            Vector3 distanceTillMax = Physics.getDistanceBetweenPoint(max, point, ax);
+            Vector3 distanceTillMinVector = Physics.getDistanceBetweenPoint(min, point, ax);
+            Vector3 distanceTillMaxVector = Physics.getDistanceBetweenPoint(max, point, ax);
 
-            int side1 = Math.Sign(distanceTillMin.X + distanceTillMin.Y + distanceTillMin.Z);
-            int side2 = Math.Sign(distanceTillMax.X + distanceTillMax.Y + distanceTillMax.Z);
+            float distanceTillMin = distanceTillMinVector.X + distanceTillMinVector.Y + distanceTillMinVector.Z;
+            float distanceTillMax = distanceTillMaxVector.X + distanceTillMaxVector.Y + distanceTillMaxVector.Z;
 
-            return side1 != side2 || distanceTillMin.Equals(Vector3.Zero) || distanceTillMax.Equals(Vector3.Zero);
+            float distanceTillBoundry;
+            if (Math.Sign(distanceTillMin) != Math.Sign(distanceTillMax) || distanceTillMin.Equals(Vector3.Zero) || distanceTillMax.Equals(Vector3.Zero))
+            {
+                distanceTillBoundry = 0;
+            }
+            else
+            {
+                distanceTillBoundry = Math.Min(Math.Abs(distanceTillMin), Math.Abs(distanceTillMax));
+            }
+
+            return distanceTillBoundry;
         }
 
-        public bool inBoundry(Vector3 point)
+        public Vector2 getDistanceTillBoundry(Vector3 point)
         {
-            return inBoundry(point, Vector3.Forward) && inBoundry(point, Vector3.Right);
+            return new Vector2(getDistanceTillBoundry(point, Vector3.Right), getDistanceTillBoundry(point, Vector3.Forward));
+        }
+
+        public CollisionInfo getPivotWithLineAndDistanceTillBoundries(Vector3 point, Vector3 direction, float radius)
+        {
+            Vector2 distance = getDistanceTillBoundry(point);
+            if (distance.X <= radius && distance.Y <= radius)
+            {
+                return new CollisionInfo(getPivotWithLine(point, direction), distance, 0);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public Vector3 getPivotWithLine(Vector3 point, Vector3 direction)
         {
-            if (inBoundry(point))
-            {
-                float t = (_equation.W - (_equation.X * point.X + _equation.Y * point.Y + _equation.Z * point.Z))
-                    / (_equation.X * direction.X + _equation.Y * direction.Y + _equation.Z * direction.Z);
+            float t = (_equation.W - (_equation.X * point.X + _equation.Y * point.Y + _equation.Z * point.Z))
+                / (_equation.X * direction.X + _equation.Y * direction.Y + _equation.Z * direction.Z);
 
-                Vector3 pivot = new Vector3(point.X + t * direction.X, point.Y + t * direction.Y, point.Z + t * direction.Z);
+            Vector3 pivot = new Vector3(point.X + t * direction.X, point.Y + t * direction.Y, point.Z + t * direction.Z);
 
-                return pivot;
-            }
-            else
-            {
-                return new Vector3(float.NaN, float.NaN, float.NaN);
-            }
+            return pivot;
         }
 
         public Vector4 equation

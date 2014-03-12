@@ -111,6 +111,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripts\Box.cs" />
     <Compile Include="Scripts\Camera.cs" />
+    <Compile Include="Scripts\CollisionInfo.cs" />
     <Compile Include="Scripts\Physics.cs" />
     <Compile Include="Scripts\ModelObject.cs" />
     <Compile Include="Scripts\GameObject.cs" />
