@@ -11,12 +11,16 @@ namespace SIMTEC3D_Prac1.Scripts
     class Ball : ModelObject
     {
         private GameObject[] gameobjects;
-        private Vector3 velocity;
+        private Vector3 velocity, acceleration;
+        private float airFriction, bounceFriction;
 
         public Ball(Vector3 position, float scale, GraphicsDevice device, GameObject[] gameobjects) : base(position, Vector3.Zero, scale, device)
         {
             this.gameobjects = gameobjects;
             this.velocity = new Vector3(0.5f, 3f, 0.5f);
+            this.acceleration = new Vector3(0f, -0.15f, 0f);
+            this.airFriction = 0.999f;
+            this.bounceFriction = 0.96f;
         }
 
         protected override Model loadModel(ContentManager content)
@@ -26,6 +30,8 @@ namespace SIMTEC3D_Prac1.Scripts
 
         public override void update(float deltaTime)
         {
+            this.velocity += this.acceleration;
+            this.velocity *= airFriction;
             move(deltaTime);
             base.update(deltaTime);
         }
@@ -116,6 +122,7 @@ namespace SIMTEC3D_Prac1.Scripts
 
             //Reverse the velocity in the dircection of the plane
             speed = speed - 2 * speedInNormalDirection;
+            speed *= bounceFriction; 
 
             return speed;
         }
