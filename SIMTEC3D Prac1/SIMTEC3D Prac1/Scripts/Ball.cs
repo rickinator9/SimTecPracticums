@@ -111,7 +111,7 @@ namespace SIMTEC3D_Prac1.Scripts
                 float maxDistance = Math.Max(collisionInfo.distanceTillCollision.X, collisionInfo.distanceTillCollision.Y);
                 if (collisionInfo.distanceTillCollision.Length() == 0)
                 {
-                    speedInfo = bounce(ballCollisionPoint, speed, speedInNormalDirection, plane.normal, collisionInfo.pivot);
+                    speedInfo = bounce(speed, speedInNormalDirection, plane.normal);
                 }
                 else if (maxDistance <= radius)
                 {
@@ -121,10 +121,6 @@ namespace SIMTEC3D_Prac1.Scripts
                     CollisionInfo centerCollisionInfo = applyCollisionPhysics(plane, speed, position, speedInNormalDirection, true);
                     if (centerCollisionInfo != null)
                     {
-                        CollisionInfo recalculatedCollisionInfo = centerCollisionInfo.duplicate();
-                        recalculatedCollisionInfo.pivot = collisionInfo.pivot + (maxDistance / radius) * (centerCollisionInfo.pivot - collisionInfo.pivot);
-                        recalculatedCollisionInfo.distanceTillCollision = Vector2.Zero;
-
                         Vector3 startingNormal = new Vector3(0, 1, 0);
                         Vector3 planeNormal = plane.normal;
                         planeNormal.Normalize();
@@ -145,7 +141,7 @@ namespace SIMTEC3D_Prac1.Scripts
                         {
                             speedInCollisionDirection *= -1;
                         }
-                        speedInfo = bounce(recalculatedBallCollisionPoint, speed, speedInCollisionDirection, plane.normal, recalculatedCollisionInfo.pivot);
+                        speedInfo = bounce(speed, speedInCollisionDirection, plane.normal);
                     }
                 }
             }
@@ -179,7 +175,7 @@ namespace SIMTEC3D_Prac1.Scripts
         }
 
         //Bounce the ball away from a plane
-        private SpeedInfo bounce(Vector3 ballCollisionPoint, Vector3 speed, Vector3 speedInCollisionDirection, Vector3 planeNormal, Vector3 pivot)
+        private SpeedInfo bounce(Vector3 speed, Vector3 speedInCollisionDirection, Vector3 planeNormal)
         {            
             //Dotproduct calculation
             Vector3 normalizedNormal = new Vector3(planeNormal.X, planeNormal.Y, planeNormal.Z);
