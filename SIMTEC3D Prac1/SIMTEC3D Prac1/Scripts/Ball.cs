@@ -118,7 +118,7 @@ namespace SIMTEC3D_Prac1.Scripts
                     //Calculate the position of the end of the ball that is pointing toward the plane
                     Vector3 newPosition = ballCollisionPoint + speed;     //The new position, ignoring collisions
 
-                    CollisionInfo centerCollisionInfo = applyCollisionPhysics(plane, speed, newPosition, speedInNormalDirection, true);
+                    CollisionInfo centerCollisionInfo = applyCollisionPhysics(plane, speed, position, speedInNormalDirection, true);
                     if (centerCollisionInfo != null)
                     {
                         CollisionInfo recalculatedCollisionInfo = centerCollisionInfo.duplicate();
@@ -130,16 +130,15 @@ namespace SIMTEC3D_Prac1.Scripts
                         planeNormal.Normalize();
                         Vector3 crossProduct = Vector3.Cross(startingNormal, planeNormal);
                         crossProduct.Normalize();
-                        Vector3 distanceTillCollision = new Vector3(collisionInfo.distanceTillCollision.Y, 0, collisionInfo.distanceTillCollision.X);
+                        Vector3 distanceTillCollision = new Vector3(collisionInfo.distanceTillCollision.X, -1+(float) Math.Sqrt(collisionInfo.distanceTillCollision.X * collisionInfo.distanceTillCollision.X + collisionInfo.distanceTillCollision.Y * collisionInfo.distanceTillCollision.Y), collisionInfo.distanceTillCollision.Y);
                         if (!crossProduct.X.Equals(float.NaN) && !crossProduct.Y.Equals(float.NaN) && !crossProduct.Z.Equals(float.NaN))
                         {
-                            Matrix rotationMatrix = new Matrix(startingNormal.X, planeNormal.X, crossProduct.X, 0,
-                                                 startingNormal.Y, planeNormal.Y, crossProduct.Y, 0,
-                                                 startingNormal.Z, planeNormal.Z, crossProduct.Z, 0,
-                                                 0, 0, 0, 0); 
-                            distanceTillCollision = Vector3.Transform(distanceTillCollision, rotationMatrix);
+                            Quaternion q = new Quaternion(crossProduct.X, crossProduct.Y, crossProduct.Z, 1 + Vector3.Dot(startingNormal, planeNormal));
+                            q.Normalize();
+                            distanceTillCollision = Vector3.Transform(distanceTillCollision, q);
                         }
-                        Vector3 offSet = Vector3.Transform((ballCollisionPoint - position), Matrix.CreateRotationX(-distanceTillCollision.X * 0.5f * (float)Math.PI / scale) * Matrix.CreateRotationY(-distanceTillCollision.Y * 0.5f * (float)Math.PI / scale) * Matrix.CreateRotationZ(-distanceTillCollision.Z * 0.5f * (float)Math.PI / scale));
+                        Vector3 offSet = distanceTillCollision;
+                        offSet = offSet * scale;
                         Vector3 recalculatedBallCollisionPoint = position + offSet;
                         Vector3 speedInCollisionDirection = Physics.dotProductCalculation(speed, offSet / scale);
                         if (Math.Sign(speedInCollisionDirection.X) != Math.Sign(offSet.X) || Math.Sign(speedInCollisionDirection.Y) != Math.Sign(offSet.Y) || Math.Sign(speedInCollisionDirection.Y) != Math.Sign(offSet.Y))
@@ -165,10 +164,14 @@ namespace SIMTEC3D_Prac1.Scripts
             {
                 float distance = distanceVector.X + distanceVector.Y + distanceVector.Z;
                 float newDistance = newDistanceVector.X + newDistanceVector.Y + newDistanceVector.Z;
-
-                if (Math.Sign(distance) != Math.Sign(newDistance) || ignoreLength)     //Is the bal past the plane
+                bool passesPlane = Math.Sign(distance) != Math.Sign(newDistance);
+                if (ignoreLength || passesPlane) 
                 {
-                    collisionInfo = plane.getPivotWithLineAndDistanceTillBoundries(ballCollisionPoint, speed, radius);
+                    Vector3 distanceTowardPlane = Physics.dotProductCalculation(distanceVector, plane.normal);
+                    if (ignoreLength || (Math.Sign(distanceTowardPlane.X) == Math.Sign(-plane.normal.X) || Math.Sign(distanceTowardPlane.Y) == Math.Sign(-plane.normal.Y) || Math.Sign(distanceTowardPlane.Z) == Math.Sign(-plane.normal.Z)))
+                    {
+                        collisionInfo = plane.getPivotWithLineAndDistanceTillBoundries(ballCollisionPoint, speed, radius);
+                    }
                 }
             }
 
@@ -184,9 +187,9 @@ namespace SIMTEC3D_Prac1.Scripts
 
             //Reverse the velocity in the dirrection of the plane
             SpeedInfo speedInfo;
-            speedInfo.speed = speed - 2 * speedInCollisionDirection / scale;
-            speedInfo.speedThisFrame = (pivot - ballCollisionPoint) * 0.999f*0;
-            Console.WriteLine(speedInfo.speedThisFrame);
+            speedInfo.speed = speed - 2 * speedInCollisionDirection;
+            speedInfo.speed = speedInfo.speed / speedInfo.speed.Length() * speed.Length();
+            speedInfo.speedThisFrame = Vector3.Zero;
             return speedInfo;
         }
 
