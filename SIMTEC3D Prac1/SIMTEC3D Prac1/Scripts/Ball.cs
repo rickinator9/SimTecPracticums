@@ -22,7 +22,7 @@ namespace SIMTEC3D_Prac1.Scripts
         public Ball(Vector3 position, float scale, GraphicsDevice device, GameObject[] gameobjects) : base(position, Vector3.Zero, scale, device)
         {
             this.gameobjects = gameobjects;
-            this.velocity = new Vector3(0.12f, -0.5f, 0);
+            this.velocity = new Vector3(0.14f, -0.5f, 0);
         }
 
         protected override Model loadModel(ContentManager content)
@@ -126,7 +126,7 @@ namespace SIMTEC3D_Prac1.Scripts
                         planeNormal.Normalize();
                         Vector3 crossProduct = Vector3.Cross(startingNormal, planeNormal);
                         crossProduct.Normalize();
-                        Vector3 distanceTillCollision = new Vector3(collisionInfo.distanceTillCollision.X, -1+(float) Math.Sqrt(collisionInfo.distanceTillCollision.X * collisionInfo.distanceTillCollision.X + collisionInfo.distanceTillCollision.Y * collisionInfo.distanceTillCollision.Y), collisionInfo.distanceTillCollision.Y);
+                        Vector3 distanceTillCollision = new Vector3(collisionInfo.distanceTillCollision.X, -1 + (float)Math.Sqrt(collisionInfo.distanceTillCollision.X * collisionInfo.distanceTillCollision.X + collisionInfo.distanceTillCollision.Y * collisionInfo.distanceTillCollision.Y), collisionInfo.distanceTillCollision.Y);
                         if (!crossProduct.X.Equals(float.NaN) && !crossProduct.Y.Equals(float.NaN) && !crossProduct.Z.Equals(float.NaN))
                         {
                             Quaternion q = new Quaternion(crossProduct.X, crossProduct.Y, crossProduct.Z, 1 + Vector3.Dot(startingNormal, planeNormal));
@@ -142,6 +142,10 @@ namespace SIMTEC3D_Prac1.Scripts
                             speedInCollisionDirection *= -1;
                         }
                         speedInfo = bounce(speed, speedInCollisionDirection, plane.normal);
+                    }
+                    else
+                    {
+                       speedInfo = bounce(speed, speedInNormalDirection, plane.normal);
                     }
                 }
             }
