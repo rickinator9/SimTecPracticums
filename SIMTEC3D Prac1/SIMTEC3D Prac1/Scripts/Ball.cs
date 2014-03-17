@@ -23,7 +23,7 @@ namespace SIMTEC3D_Prac1.Scripts
         public Ball(Vector3 position, float scale, GraphicsDevice device, GameObject[] gameobjects) : base(position, Vector3.Zero, scale, device)
         {
             this.gameobjects = gameobjects;
-            this.velocity = new Vector3(0.12f, -0.5f, 0.1f);
+            this.velocity = new Vector3(-0.6f, 0, 0);
             this.acceleration = new Vector3(0f, -0.10f, 0f);
             this.airFriction = 0.999f;
             this.bounceFriction = 0.96f;
@@ -114,7 +114,7 @@ namespace SIMTEC3D_Prac1.Scripts
 
             if (collisionInfo != null)
             {
-                float maxDistance = Math.Max(collisionInfo.distanceTillCollision.X, collisionInfo.distanceTillCollision.Y);
+                float maxDistance = Math.Max(Math.Abs(collisionInfo.distanceTillCollision.X), Math.Abs(collisionInfo.distanceTillCollision.Y));
                 if (collisionInfo.distanceTillCollision.Length() == 0)
                 {
                     speedInfo = bounce(speed, speedInNormalDirection, plane.normal);

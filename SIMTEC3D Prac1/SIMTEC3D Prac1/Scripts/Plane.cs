@@ -31,35 +31,46 @@ namespace SIMTEC3D_Prac1.Scripts
             return (pivot - point);
         }
 
-        private float getDistanceTillBoundry(Vector3 point, Vector3 ax)
+        //Calculate how far a pivot is away from a plane in direction ax
+        private float getDistanceTillBoundry(Vector3 pivot, Vector3 ax)
         {
+            //Apply the rotation of the plane on the vector ax
             ax = Vector3.Transform(ax, Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z));
 
+            //Determen the limits of the plane
             Vector3 min = position - scale * ax;
             Vector3 max = position + scale * ax;
 
-            Vector3 distanceTillMinVector = Physics.getDistanceBetweenPoint(min, point, ax);
-            Vector3 distanceTillMaxVector = Physics.getDistanceBetweenPoint(max, point, ax);
-
+            //Determen the distance from point to plane limit
+            Vector3 distanceTillMinVector = Physics.getDistanceBetweenPoint(min, pivot, ax);
+            Vector3 distanceTillMaxVector = Physics.getDistanceBetweenPoint(max, pivot, ax);
             float distanceTillMin = distanceTillMinVector.X + distanceTillMinVector.Y + distanceTillMinVector.Z;
             float distanceTillMax = distanceTillMaxVector.X + distanceTillMaxVector.Y + distanceTillMaxVector.Z;
 
             float distanceTillBoundry;
-            if (Math.Sign(distanceTillMin) != Math.Sign(distanceTillMax) || distanceTillMin.Equals(Vector3.Zero) || distanceTillMax.Equals(Vector3.Zero))
+            if (Math.Sign(distanceTillMin) != Math.Sign(distanceTillMax) || distanceTillMin.Equals(Vector3.Zero) || distanceTillMax.Equals(Vector3.Zero)) //Determen if a plane is between or on the plane limits
             {
                 distanceTillBoundry = 0;
             }
             else
             {
-                distanceTillBoundry = Math.Min(Math.Abs(distanceTillMin), Math.Abs(distanceTillMax));
+                if (Math.Abs(distanceTillMin) < Math.Abs(distanceTillMax))
+                {
+                    distanceTillBoundry = -distanceTillMin;
+                }
+                else
+                {
+                    distanceTillBoundry = -distanceTillMax;
+                }
             }
 
             return distanceTillBoundry;
         }
 
-        public Vector2 getDistanceTillBoundry(Vector3 point)
+        //Determen how far a pivot is away square plane
+        public Vector2 getDistanceTillBoundry(Vector3 pivot)
         {
-            return new Vector2(getDistanceTillBoundry(point, Vector3.Right), getDistanceTillBoundry(point, Vector3.Forward));
+            return new Vector2(getDistanceTillBoundry(pivot, Vector3.Right), getDistanceTillBoundry(pivot, Vector3.Forward));
         }
 
         public CollisionInfo getPivotWithLineAndDistanceTillBoundries(Vector3 point, Vector3 direction, float radius)
