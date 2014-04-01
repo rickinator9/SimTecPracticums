@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Audio;
 
 namespace SIMTEC3D_Prac1.Scripts
 {
@@ -18,12 +19,14 @@ namespace SIMTEC3D_Prac1.Scripts
 
         private GameObject[] gameobjects;
         private Vector3 velocity, acceleration;
-        private float airFriction, bounceFriction;
+        protected float airFriction, bounceFriction;
+        protected int index = 0;
+        protected SoundEffect ding;
 
         public Ball(Vector3 position, float scale, GraphicsDevice device, GameObject[] gameobjects) : base(position, Vector3.Zero, scale, device)
         {
             this.gameobjects = gameobjects;
-            this.velocity = new Vector3(-0.6f, 0, 0);
+            this.velocity = new Vector3(0, 0, 2f);
             this.acceleration = new Vector3(0f, -0.10f, 0f);
             this.airFriction = 0.999f;
             this.bounceFriction = 0.96f;
@@ -32,6 +35,12 @@ namespace SIMTEC3D_Prac1.Scripts
         protected override Model loadModel(ContentManager content)
         {
             return content.Load<Model>("Models\\ball");
+        }
+
+        public override void LoadContent(ContentManager content)
+        {
+            base.LoadContent(content);
+            ding = content.Load<SoundEffect>("Sounds\\ding");
         }
 
         public override void update(float deltaTime)
@@ -93,8 +102,10 @@ namespace SIMTEC3D_Prac1.Scripts
                         speedInfo.speedThisFrame = info.speedThisFrame;
                     }
                 }
+                index++;
             }
 
+            index = 0;
             return speedInfo;
         }
 
@@ -181,8 +192,9 @@ namespace SIMTEC3D_Prac1.Scripts
         }
 
         //Bounce the ball away from a plane
-        private SpeedInfo bounce(Vector3 speed, Vector3 speedInCollisionDirection, Vector3 planeNormal)
-        {            
+        protected SpeedInfo bounce(Vector3 speed, Vector3 speedInCollisionDirection, Vector3 planeNormal)
+        {
+
             //Dotproduct calculation
             Vector3 normalizedNormal = new Vector3(planeNormal.X, planeNormal.Y, planeNormal.Z);
             normalizedNormal.Normalize();
@@ -192,7 +204,15 @@ namespace SIMTEC3D_Prac1.Scripts
             speedInfo.speed = speed - 2 * speedInCollisionDirection;
             speedInfo.speed = speedInfo.speed / speedInfo.speed.Length() * speed.Length();
             speedInfo.speedThisFrame = Vector3.Zero;
-            speedInfo.speed *= bounceFriction; 
+            speedInfo.speed *= bounceFriction;
+
+
+            if (gameobjects[index] is Bumper)
+            {
+                speedInfo.speed *= 1.15f;
+                ding.Play();
+            }
+
             return speedInfo;
         }
 

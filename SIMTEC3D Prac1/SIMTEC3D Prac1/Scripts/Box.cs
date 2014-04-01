@@ -10,7 +10,7 @@ namespace SIMTEC3D_Prac1.Scripts
 {
     class Box: GameObject
     {
-        private Plane[] surfaces;
+        protected Plane[] surfaces;
 
         public Box(Vector3 position, Vector3 rotation, float scale, GraphicsDevice device): base() {
             surfaces = new Plane[18];

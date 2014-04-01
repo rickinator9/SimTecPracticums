@@ -36,9 +36,10 @@ namespace SIMTEC3D_Prac1.Scripts
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            gameObjects = new GameObject[2];
+            gameObjects = new GameObject[3];
             gameObjects[0] = new Ball(new Vector3(0, 0, 0), 1, GraphicsDevice, gameObjects);
             gameObjects[1] = new Box(new Vector3(0, 0, 0), new Vector3(0, 0, 0), 10, GraphicsDevice);
+            gameObjects[2] = new Bumper(new Vector3(0, -8f, -7f), new Vector3(0, 0, 0), 1, GraphicsDevice);
             camera = new Camera(new Vector3(0, 0, 50), new Vector3(0, 0, -1));
             IsMouseVisible = true;
             base.Initialize();
