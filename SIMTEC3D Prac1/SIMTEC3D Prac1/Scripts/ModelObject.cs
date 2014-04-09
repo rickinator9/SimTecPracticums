@@ -35,7 +35,7 @@ namespace SIMTEC3D_Prac1.Scripts
 
         private void calculateWorldMatrix()
         {
-            worldMatrix = Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z) * Matrix.CreateScale(scale) * Matrix.CreateTranslation(position);
+            worldMatrix = Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationZ(rotation.Z) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateScale(scale) * Matrix.CreateTranslation(position);
         }
 
         public override void update(float deltaTime)

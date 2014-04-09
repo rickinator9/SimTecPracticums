@@ -14,7 +14,6 @@ namespace SIMTEC3D_Prac1.Scripts
 
         public Plane(Vector3 position, Vector3 rotation, float scale, GraphicsDevice device) : base(position, rotation, scale, device) 
         {
-            //normal direction calculation is not added yet!
             Vector3 normalDirection = Vector3.Transform(Vector3.Up, Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z));
             float d = position.X * normalDirection.X + position.Y * normalDirection.Y + position.Z * normalDirection.Z;
             _equation = new Vector4(normalDirection, d);
@@ -110,6 +109,33 @@ namespace SIMTEC3D_Prac1.Scripts
             {
                 return new Vector3(equation.X, equation.Y, equation.Z);
             }
+        }
+
+        public static Vector3 vectorMatrixMultiplication(Vector3 vector, Matrix matrix) 
+        {
+            float x = vector.X * matrix.M11 + vector.Y * matrix.M12 + vector.Z * matrix.M13 + matrix.M41;
+            float y = vector.X * matrix.M21 + vector.Y * matrix.M22 + vector.Z * matrix.M23 + matrix.M42;
+            float z = vector.X * matrix.M31 + vector.Y * matrix.M32 + vector.Z * matrix.M33 + matrix.M43;
+            return new Vector3(x, y, z);
+        }
+
+        public void rotate(Matrix matrix, Vector3 rotation)
+        {
+            this.rotation -= rotation;
+            position = vectorMatrixMultiplication(position, matrix);
+
+            Vector3 normalDirection = Vector3.Transform(Vector3.Up, Matrix.CreateRotationX(this.rotation.X) * Matrix.CreateRotationY(this.rotation.Y) * Matrix.CreateRotationZ(this.rotation.Z));
+            float d = position.X * normalDirection.X + position.Y * normalDirection.Y + position.Z * normalDirection.Z;
+            _equation = new Vector4(normalDirection, d);
+        }
+
+        public void translate(Matrix matrix)
+        {
+            position = vectorMatrixMultiplication(position, matrix);
+
+            Vector3 normalDirection = Vector3.Transform(Vector3.Up, Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z));
+            float d = position.X * normalDirection.X + position.Y * normalDirection.Y + position.Z * normalDirection.Z;
+            _equation = new Vector4(normalDirection, d);
         }
     }
 }

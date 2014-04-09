@@ -112,6 +112,7 @@
     <Compile Include="Scripts\Box.cs" />
     <Compile Include="Scripts\Bumper.cs" />
     <Compile Include="Scripts\Camera.cs" />
+    <Compile Include="Scripts\Flipper.cs" />
     <Compile Include="Scripts\CollisionInfo.cs" />
     <Compile Include="Scripts\Physics.cs" />
     <Compile Include="Scripts\ModelObject.cs" />

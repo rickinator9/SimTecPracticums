@@ -22,14 +22,16 @@ namespace SIMTEC3D_Prac1.Scripts
         protected float airFriction, bounceFriction;
         protected int index = 0;
         protected SoundEffect ding;
+        private Vector3 startPos;
 
         public Ball(Vector3 position, float scale, GraphicsDevice device, GameObject[] gameobjects) : base(position, Vector3.Zero, scale, device)
         {
+            startPos = position;
             this.gameobjects = gameobjects;
-            this.velocity = new Vector3(0, 0, 2f);
-            this.acceleration = new Vector3(0f, -0.10f, 0f);
+            this.velocity = new Vector3(0, 0, 0f);
+            this.acceleration = new Vector3(0f, -0.05f, 0.005f);
             this.airFriction = 0.999f;
-            this.bounceFriction = 0.96f;
+            this.bounceFriction = 0.9f;
         }
 
         protected override Model loadModel(ContentManager content)
@@ -45,8 +47,11 @@ namespace SIMTEC3D_Prac1.Scripts
 
         public override void update(float deltaTime)
         {
-            this.velocity += this.acceleration;
-            this.velocity *= airFriction;
+            if (position.Y < -20)
+            {
+                position = startPos;
+                velocity = Vector3.Zero;
+            }
             move(deltaTime);
             base.update(deltaTime);
         }
@@ -54,15 +59,17 @@ namespace SIMTEC3D_Prac1.Scripts
         //Move the ball and check for collision
         private void move(float deltaTime)
         {
-            if (velocity.Length() != 0)
+            Vector3 speed = velocity * deltaTime;
+            SpeedInfo speedInfo = applyPhysics(speed);
+            position += speedInfo.speedThisFrame;
+            if (!speed.Equals(speedInfo.speed))
             {
-                Vector3 speed = velocity * deltaTime;
-                SpeedInfo speedInfo = applyPhysics(speed);
-                position += speedInfo.speedThisFrame;
-                if (!speed.Equals(speedInfo.speed))
-                {
-                    velocity = speedInfo.speed / deltaTime;
-                }
+                velocity = speedInfo.speed / deltaTime;
+            }
+            else
+            {
+                this.velocity += this.acceleration;
+                this.velocity *= airFriction;
             }
         }
 
@@ -84,6 +91,18 @@ namespace SIMTEC3D_Prac1.Scripts
                 if (gameObject is Box)
                 {
                     foreach (Plane plane in ((Box)gameObject).planes)
+                    {
+                        SpeedInfo info = applyCollisionPhysics(plane, speedInfo.speed);
+                        speedInfo.speed = info.speed;
+                        if (info.speedThisFrame.Length() < speedInfo.speedThisFrame.Length())
+                        {
+                            speedInfo.speedThisFrame = info.speedThisFrame;
+                        }
+                    }
+                }
+                else if (gameObject is Flipper)
+                {
+                    foreach (Plane plane in ((Flipper)gameObject).planes)
                     {
                         SpeedInfo info = applyCollisionPhysics(plane, speedInfo.speed);
                         speedInfo.speed = info.speed;
@@ -214,6 +233,12 @@ namespace SIMTEC3D_Prac1.Scripts
             }
 
             return speedInfo;
+        }
+
+        public void accelerate(Vector3 direction, Vector3 newPosition)
+        {
+            position = newPosition;
+            velocity = direction;
         }
 
         public float radius
