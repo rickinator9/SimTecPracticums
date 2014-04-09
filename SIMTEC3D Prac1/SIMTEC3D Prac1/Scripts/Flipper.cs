@@ -68,29 +68,42 @@ namespace SIMTEC3D_Prac1.Scripts
 
         private void rotate(float deltaTime)
         {
+            //Calculate the rotation in this frame
             float rotation = sign(rotationASecond) * Math.Min(Math.Abs(rotationASecond) * deltaTime, maxAngle - Math.Abs(this.rotation));
-            this.rotation += rotation;
             Matrix rotationMatrix = Matrix.CreateRotationY(rotation);
+
+            this.rotation += rotation;
+
             foreach (Plane plane in surfaces)
             {
                 Vector3 oldDistanceVector = plane.getDistanceTillPoint(ball.getPivotWithPlane(plane.normal));
                 float oldDistance = oldDistanceVector.X + oldDistanceVector.Y + oldDistanceVector.Z;
+
+                //Rotate a plane
                 plane.translate(Matrix.CreateTranslation(-pivot));
                 plane.rotate(rotationMatrix, new Vector3(0, rotation, 0));
                 plane.translate(Matrix.CreateTranslation(pivot));
+
                 Vector3 newDistanceVector = plane.getDistanceTillPoint(ball.getPivotWithPlane(plane.normal));
                 float newDistance = newDistanceVector.X + newDistanceVector.Y + newDistanceVector.Z;
-                if (Math.Sign(oldDistance) != Math.Sign(newDistance))
+
+                if (Math.Sign(oldDistance) != Math.Sign(newDistance))       //Check if the ball is on the other side of the frame after this frame
                 {
                     Vector3 pivotWithPlane = plane.getPivotWithLine(ball.position, -plane.normal);
                     Vector2 distanceTillBoundry = plane.getDistanceTillBoundry(pivotWithPlane);
-                    if (distanceTillBoundry.Length() == 0)
+                    if (distanceTillBoundry.Length() == 0)      //Check if the pivot with the plane is inside the boundries of the plane
                     {
                         Vector3 ballPosition = ball.position;
+
+                        //Rotate the bal around the turning point of the flipper
                         ballPosition = Plane.vectorMatrixMultiplication(ballPosition, Matrix.CreateTranslation(-pivot));
                         ballPosition = Plane.vectorMatrixMultiplication(ballPosition, Matrix.CreateRotationY(rotation));
                         ballPosition = Plane.vectorMatrixMultiplication(ballPosition, Matrix.CreateTranslation(pivot));
+
+                        //Lift the bal from teh ground, to prefent it the move past the ground plane
                         ballPosition.Y += 0.2f;
+
+                        //Move the bal away from the plane
                         ball.accelerate(plane.normal, ballPosition);
                     }
                 }

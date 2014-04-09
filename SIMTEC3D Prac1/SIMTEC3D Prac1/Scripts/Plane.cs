@@ -124,7 +124,8 @@ namespace SIMTEC3D_Prac1.Scripts
             this.rotation -= rotation;
             position = vectorMatrixMultiplication(position, matrix);
 
-            Vector3 normalDirection = Vector3.Transform(Vector3.Up, Matrix.CreateRotationX(this.rotation.X) * Matrix.CreateRotationY(this.rotation.Y) * Matrix.CreateRotationZ(this.rotation.Z));
+            Vector3 normalDirection = Vector3.Transform(Vector3.Up, Matrix.CreateRotationX(this.rotation.X) 
+                                                * Matrix.CreateRotationY(this.rotation.Y) * Matrix.CreateRotationZ(this.rotation.Z));
             float d = position.X * normalDirection.X + position.Y * normalDirection.Y + position.Z * normalDirection.Z;
             _equation = new Vector4(normalDirection, d);
         }
@@ -133,7 +134,8 @@ namespace SIMTEC3D_Prac1.Scripts
         {
             position = vectorMatrixMultiplication(position, matrix);
 
-            Vector3 normalDirection = Vector3.Transform(Vector3.Up, Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z));
+            Vector3 normalDirection = Vector3.Transform(Vector3.Up, Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) 
+                                        * Matrix.CreateRotationZ(rotation.Z));
             float d = position.X * normalDirection.X + position.Y * normalDirection.Y + position.Z * normalDirection.Z;
             _equation = new Vector4(normalDirection, d);
         }
